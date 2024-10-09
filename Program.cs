@@ -86,7 +86,7 @@ namespace CheckGenerationPrism
             {
                 Console.WriteLine($"prisms: {i}\t/\t{Num}");
             };
-            timer.Start();
+            //timer.Start();
             for (i = 0; i < Num && tryCount<1000;)
             {
                 var prism = GenerateRandomPrism(LimitedSize, SizeLow, SizeMax);
@@ -137,12 +137,10 @@ namespace CheckGenerationPrism
             int SizeMax = 12;
             int SizeLow = 2;
             //Data[] datas = new Data[] {
-            //new Data() { Num = 1_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 4 },
-            //new Data() { Num = 1_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 4 },
             //new Data() { Num = 1_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 5 },
             //new Data() { Num = 1_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 5 },
             //new Data() { Num = 1_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 6 },
-            //new Data() { Num = 1_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 6 }
+            //new Data() { Num = 1_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 6 },
             //};
 
             //foreach (var item in datas)
@@ -158,7 +156,7 @@ namespace CheckGenerationPrism
             sw.Stop();
             Console.WriteLine($"End at {sw.Elapsed.TotalSeconds}");
             Console.WriteLine("Check intersection");
-            HasPrismIntersection(prisms);
+            //HasPrismIntersection(prisms);
             Console.WriteLine("All");
 
         }

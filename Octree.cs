@@ -117,7 +117,7 @@ namespace CheckGenerationPrism
                 //return flag2;
 
                 var tlistPrisms = GetNeighbourNodes(prism, node.HalfSize);
-                return TryAddMoreNode2(node, prism, tlistPrisms);
+                return TryAddMoreNode(node, prism, tlistPrisms);
 
             }
             // Определяем индекс дочернего узла
@@ -377,6 +377,7 @@ namespace CheckGenerationPrism
 
         private bool IsPrismIntersectionWithOutTask(PrismModel pm, List<PrismModel> prisms)
         {
+            // 1  вариант
             //foreach (var prism in prisms)
             //{
             //    var t = pm.IsPrismIntersection(prism);
@@ -384,6 +385,8 @@ namespace CheckGenerationPrism
             //        return true;
             //}
             //return false;
+
+            // 2 вариант
             foreach (var prism in prisms)
             {
                 var t = PrismModel.IsPrismIntersection(pm, prism);
@@ -397,6 +400,36 @@ namespace CheckGenerationPrism
             }
             PrismModel.Dispose(pm);
             return false;
+
+            // 3 вариант баг
+            //bool flag = false;
+            //Parallel.ForEach(prisms, (prism, state) =>
+            //{
+            //    if(PrismModel.IsPrismIntersection(pm, prism))
+            //    {
+            //        PrismModel.Dispose(prism);
+            //        flag = true;
+            //        state.Stop();
+            //    }
+            //    PrismModel.Dispose(prism);
+            //});
+            //PrismModel.Dispose(pm);
+            //return flag;
+
+            // 4 вариант
+            //PrismModel.UnDispose(pm);
+            //bool intersectionFound = prisms.AsParallel().Any(prism =>
+            //{
+            //    if (PrismModel.IsPrismIntersection(pm, prism))
+            //    {
+            //        PrismModel.Dispose(prism);
+            //        return true;
+            //    }
+            //    PrismModel.Dispose(prism);
+            //    return false;
+            //});
+            //PrismModel.Dispose(pm);
+            //return intersectionFound;
         }
 
         private bool TryAddMoreNode2(OctreeNode node, PrismModel prismModel, List<OctreeNode> octreeNodes)
@@ -404,35 +437,37 @@ namespace CheckGenerationPrism
             if (octreeNodes == null || octreeNodes.Count == 0)
                 throw new Exception("TryAddMoreNode, node = null or node.Count == 0");
 
-            var results = new ConcurrentBag<bool>();
+            // 1 вариант
+            //var results = new ConcurrentBag<bool>();
 
-            Parallel.ForEach(octreeNodes, (octreeNode, state) =>
-            {
-                var tmp = PrismModel.Copy(prismModel);
-                if (IsPrismIntersectionWithOutTask(tmp, octreeNode.Prisms))
-                {
-                    results.Add(true);
-                    state.Stop(); // Прекращаем дальнейшую обработку
-                }
-            });
-
-            if (results.Contains(true))
-            {
-                return false;
-            }
-
-
-            //bool intersectionFound = octreeNodes.AsParallel().Any(octreeNode =>
+            //Parallel.ForEach(octreeNodes, (octreeNode, state) =>
             //{
             //    var tmp = PrismModel.Copy(prismModel);
-            //    return IsPrismIntersectionWithOutTask(tmp, octreeNode.Prisms);
+
+            //    if (IsPrismIntersectionWithOutTask(tmp, octreeNode.Prisms))
+            //    {
+            //        results.Add(true);
+            //        state.Stop(); // Прекращаем дальнейшую обработку
+            //    }
             //});
-            //if (intersectionFound)
+
+            //if (results.Contains(true))
             //{
             //    return false;
             //}
 
+            // 2 вариант
+            bool intersectionFound = octreeNodes.AsParallel().Any(octreeNode =>
+            {
+                var tmp = PrismModel.Copy(prismModel);
+                return IsPrismIntersectionWithOutTask(tmp, octreeNode.Prisms);
+            });
+            if (intersectionFound)
+            {
+                return false;
+            }
 
+            // 3 вариант
             //Task<bool>[] tasks = new Task<bool>[octreeNodes.Count];
 
             //for (int i = 0; i < octreeNodes.Count; i++)
