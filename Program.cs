@@ -132,15 +132,15 @@ namespace CheckGenerationPrism
             //    Console.WriteLine("elapsed");
             //};
             //new Data() { Num = 10000, Nc = 0.2, SizeMax = 12, SizeLow = 2 };
-            ulong Num = 1_000_000;
+            ulong Num = 20_000_000;
             double Nc = 0.2;
             int SizeMax = 12;
             int SizeLow = 2;
             //Data[] datas = new Data[] {
-            //new Data() { Num = 1_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 5 },
-            //new Data() { Num = 1_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 5 },
-            //new Data() { Num = 1_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 6 },
-            //new Data() { Num = 1_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 6 },
+            //new Data() { Num = 10_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 7 },
+            //new Data() { Num = 10_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 7 },
+            //new Data() { Num = 10_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 8 },
+            //new Data() { Num = 10_000_000, Nc = 0.2, SizeMax = 12, SizeLow = 2, Sections = 8 },
             //};
 
             //foreach (var item in datas)
@@ -152,12 +152,14 @@ namespace CheckGenerationPrism
 
             Stopwatch sw = Stopwatch.StartNew();
             Console.WriteLine("Start");
-            var prisms = GeneratePrisms(Num, Nc, SizeMax, SizeLow, 6);
+            var prisms = GeneratePrisms(Num, Nc, SizeMax, SizeLow, 8);
             sw.Stop();
             Console.WriteLine($"End at {sw.Elapsed.TotalSeconds}");
             Console.WriteLine("Check intersection");
             //HasPrismIntersection(prisms);
             Console.WriteLine("All");
+            Console.ReadKey();
+
 
         }
     }

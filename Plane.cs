@@ -67,8 +67,11 @@ namespace CheckGenerationPrism
 
         public static bool IsPointBetweenPlanes(Plane p1, Plane p2, Point point)
         {
-            double p1Re1 = p1.coefA * point.X + p1.coefB * point.Y + p1.coefC * point.Z + p1.coefD;
-            double p1Res2 = p2.coefA * point.X + p2.coefB * point.Y + p2.coefC * point.Z + p2.coefD;
+            double X = point.X;
+            double Y = point.Y;
+            double Z = point.Z;
+            double p1Re1 = p1.coefA * X + p1.coefB * Y + p1.coefC * Z + p1.coefD;
+            double p1Res2 = p2.coefA * X + p2.coefB * Y + p2.coefC * Z + p2.coefD;
 
             if (p1Re1 * p1Res2 <= 0)
                 return true;

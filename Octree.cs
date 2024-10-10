@@ -493,20 +493,24 @@ namespace CheckGenerationPrism
         private List<OctreeNode> GetNeighbourNodes(PrismModel pm, double halfSize)
         {
             var center = pm.center;
+            double X = pm.center.X;
+            double Y = pm.center.Y;
+            double Z = pm.center.Z;
+
             var nodes = new HashSet<OctreeNode>
             {
                 FindeNode(root, center, 1)
             };
             double w = 15;
             Point[] points = new Point[] {
-                new Point(center.X+w,center.Y+w,center.Z+w),
-                new Point(center.X+w,center.Y+w,center.Z-w),
-                new Point(center.X+w,center.Y-w,center.Z+w),
-                new Point(center.X+w,center.Y-w,center.Z-w),
-                new Point(center.X-w,center.Y+w,center.Z+w),
-                new Point(center.X-w,center.Y+w,center.Z-w),
-                new Point(center.X-w,center.Y-w,center.Z+w),
-                new Point(center.X-w,center.Y-w,center.Z-w),
+                new Point(X+w,Y+w,Z+w),
+                new Point(X+w,Y+w,Z-w),
+                new Point(X+w,Y-w,Z+w),
+                new Point(X+w,Y-w,Z-w),
+                new Point(X-w,Y+w,Z+w),
+                new Point(X-w,Y+w,Z-w),
+                new Point(X-w,Y-w,Z+w),
+                new Point(X-w,Y-w,Z-w),
             };
             foreach (var point in points)
             {
