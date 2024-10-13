@@ -71,11 +71,15 @@ namespace CheckGenerationPrism
 
         }
 
-        public static List<PrismModel> GeneratePrisms(ulong Num, double Nc, int SizeMax, int SizeLow, int sections)
+        public static Octree GeneratePrisms(ulong Num, double Nc, int SizeMax, int SizeLow, int sections)
         {
             var timer = new Timer() { Interval = 5000 };
             
             double maxVPrism = (((6 * (SizeMax / 2) * (SizeMax / 2)) / 2) * Math.Sin(Math.PI / 3)) * SizeMax;
+
+            int midleSize = (SizeMax - SizeLow) / 2 + SizeLow;
+            double middleVPrism = (((6 * (midleSize / 2) * (midleSize / 2)) / 2) * Math.Sin(Math.PI / 3)) * midleSize;
+
             double LimitedSize = Math.Pow(maxVPrism * Num * 100 / (Nc * 100), 1.0 / 3) / 2;
             var maxDistPrism = Point.InvSqrt(Math.Pow(SizeMax / 2, 2) + Math.Pow(SizeMax / 2, 2));
             var octree = new Octree(new Point(0, 0, 0), LimitedSize, sections, maxDistPrism);
@@ -101,7 +105,7 @@ namespace CheckGenerationPrism
                 }
             }
             timer.Stop();
-            return octree.GetPrisms();
+            return octree;//.GetPrisms();
         }
         public static void StartGeneration(ulong Num, double Nc, int SizeMax, int SizeLow, int sections)
         {
@@ -132,7 +136,7 @@ namespace CheckGenerationPrism
             //    Console.WriteLine("elapsed");
             //};
             //new Data() { Num = 10000, Nc = 0.2, SizeMax = 12, SizeLow = 2 };
-            ulong Num = 20_000_000;
+            ulong Num = 1_00_000;
             double Nc = 0.2;
             int SizeMax = 12;
             int SizeLow = 2;
@@ -152,10 +156,27 @@ namespace CheckGenerationPrism
 
             Stopwatch sw = Stopwatch.StartNew();
             Console.WriteLine("Start");
-            var prisms = GeneratePrisms(Num, Nc, SizeMax, SizeLow, 8);
+            var octree = GeneratePrisms(Num, Nc, SizeMax, SizeLow, 5);
             sw.Stop();
             Console.WriteLine($"End at {sw.Elapsed.TotalSeconds}");
-            Console.WriteLine("Check intersection");
+
+            var nodes = octree.GetNodes();
+            double vnode = Math.Pow(nodes[0].HalfSize * 2,3);
+
+            double maxRatio = double.MinValue;
+            Console.WriteLine("Ratio node: "+vnode);
+            foreach (var item in octree.GetNodes())
+            {
+                var t = item.prismsVolume / vnode;
+                if (t > maxRatio)
+                {
+                    Console.WriteLine($"prism in node: {item.PrismsCount()} \t ratio prism: {item.prismsVolume} \t ratio: "+t);
+
+                    maxRatio = t;
+                }
+            }
+
+            //Console.WriteLine("Check intersection");
             //HasPrismIntersection(prisms);
             Console.WriteLine("All");
             Console.ReadKey();
