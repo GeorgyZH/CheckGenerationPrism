@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+//using System.Threading.Tasks;
 
 namespace CheckGenerationPrism
 {
@@ -228,6 +228,8 @@ namespace CheckGenerationPrism
 
         private bool IsPrismIntersection(PrismModel pmc, List<PrismModel> prisms)
         {
+            return IsPrismIntersectionWithOutTask(pmc, prisms);
+            /*
             if (prisms.Count < 10000)
             {
                 var t = IsPrismIntersectionWithOutTask(pmc, prisms);   
@@ -372,7 +374,7 @@ namespace CheckGenerationPrism
                 item.Start();
             Task.WaitAll(tasks);
 
-            return flag;
+            return flag;*/
         }
 
         private bool IsPrismIntersectionWithOutTask(PrismModel pm, List<PrismModel> prisms)
