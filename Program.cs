@@ -77,10 +77,10 @@ namespace CheckGenerationPrism
             
             double maxVPrism = (((6 * (SizeMax / 2) * (SizeMax / 2)) / 2) * Math.Sin(Math.PI / 3)) * SizeMax;
 
-            int midleSize = (SizeMax - SizeLow) / 2 + SizeLow;
+            int midleSize = (SizeMax - SizeLow) / 2 + SizeLow-2;
             double middleVPrism = (((6 * (midleSize / 2) * (midleSize / 2)) / 2) * Math.Sin(Math.PI / 3)) * midleSize;
 
-            double LimitedSize = Math.Pow(maxVPrism * Num * 100 / (Nc * 100), 1.0 / 3) / 2;
+            double LimitedSize = Math.Pow(middleVPrism * Num * 100 / (Nc * 100), 1.0 / 3) / 2;
             var maxDistPrism = Point.InvSqrt(Math.Pow(SizeMax / 2, 2) + Math.Pow(SizeMax / 2, 2));
             var octree = new Octree(new Point(0, 0, 0), LimitedSize, sections, maxDistPrism);
 
@@ -90,7 +90,7 @@ namespace CheckGenerationPrism
             {
                 Console.WriteLine($"prisms: {i}\t/\t{Num}");
             };
-            //timer.Start();
+            timer.Start();
             for (i = 0; i < Num && tryCount<1000;)
             {
                 var prism = GenerateRandomPrism(LimitedSize, SizeLow, SizeMax);
@@ -136,7 +136,7 @@ namespace CheckGenerationPrism
             //    Console.WriteLine("elapsed");
             //};
             //new Data() { Num = 10000, Nc = 0.2, SizeMax = 12, SizeLow = 2 };
-            ulong Num = 1_00_000;
+            ulong Num = 10_000;
             double Nc = 0.2;
             int SizeMax = 12;
             int SizeLow = 2;
@@ -156,11 +156,18 @@ namespace CheckGenerationPrism
 
             Stopwatch sw = Stopwatch.StartNew();
             Console.WriteLine("Start");
-            var octree = GeneratePrisms(Num, Nc, SizeMax, SizeLow, 5);
+            var octree = GeneratePrisms(Num, Nc, SizeMax, SizeLow, 4);
             sw.Stop();
             Console.WriteLine($"End at {sw.Elapsed.TotalSeconds}");
 
             var nodes = octree.GetNodes();
+            var prisms = octree.GetPrisms();
+            double volumes = 0;
+            foreach (var item in prisms)
+            {
+                volumes += item.V;
+            }
+            Console.WriteLine("Volumes prisms: "+volumes);
             double vnode = Math.Pow(nodes[0].HalfSize * 2,3);
 
             double maxRatio = double.MinValue;
@@ -170,7 +177,7 @@ namespace CheckGenerationPrism
                 var t = item.prismsVolume / vnode;
                 if (t > maxRatio)
                 {
-                    Console.WriteLine($"prism in node: {item.PrismsCount()} \t ratio prism: {item.prismsVolume} \t ratio: "+t);
+                    Console.WriteLine($"prism in node: {item.PrismsCount()} \t ratio prism: {item.prismsVolume} \t ratio: " + t);
 
                     maxRatio = t;
                 }
