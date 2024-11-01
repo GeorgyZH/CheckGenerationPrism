@@ -14,18 +14,18 @@ namespace CheckGenerationPrism
         public double HalfSize { get; private set; }
         public OctreeNode[] Children { get; private set; }
         public List<PrismModel> Prisms { get; private set; }
-        public HashSet<OctreeNode>? NeighbourNodes { get; set; }
-        public int id { get; private set; }
-        private Guid Guid { get;  set; }
+        public double nc {  get; private set; }
+        public double volume { get; private set; }
+        public bool CanAddPrism { get; private set; }
 
-        public OctreeNode(Point center, double halfSize, int id = -1)
+        public OctreeNode(Point center, double halfSize, double nc)
         {
+            CanAddPrism = true;
             Center = center;
             HalfSize = halfSize;
             Children = new OctreeNode[8];
             Prisms = new List<PrismModel>();
-            this.id = id;
-            Guid = Guid.NewGuid();
+            this.nc = nc;
         }
 
         public bool IsLeaf() => Children.All(child => child == null);
@@ -33,12 +33,15 @@ namespace CheckGenerationPrism
         public void PrismsAdd(PrismModel prism)
         {
             Prisms.Add(prism);
-            //Console.WriteLine($"Thread: {Thread.CurrentThread.ManagedThreadId} \t NodeGuid: {Guid} \t Center: {Center}");
-        }
-
-        public override string ToString()
-        {
-            return $"Id:{id}, IsLeaf:{IsLeaf()}";
+            volume += prism.V;
+            Task.Run(async () => 
+            {
+                if (volume / Math.Pow((HalfSize * 2), 3) > nc)
+                {
+                    CanAddPrism = false;
+                }
+            });
+            
         }
     }
 
@@ -46,12 +49,14 @@ namespace CheckGenerationPrism
     {
         public OctreeNode root;
         private int maxDepth;
+        private double nc;
         
 
-        public Octree(Point center, double halfSize, int maxDepth)
+        public Octree(Point center, double halfSize, int maxDepth, double nc)
         {
-            root = new OctreeNode(center, halfSize);
+            root = new OctreeNode(center, halfSize, nc);
             this.maxDepth = maxDepth;
+            this.nc = nc;
         }
 
         public List<PrismModel> GetPrisms()
@@ -157,6 +162,12 @@ namespace CheckGenerationPrism
                 //}
                 //return flag2;
                 */
+
+                if (!node.CanAddPrism)
+                {
+                    return false;
+                }
+
                 var tlistPrisms = GetNeighbourNodes(prism, node.HalfSize);
                 return TryAddMoreNode(node, prism, tlistPrisms);
 
@@ -178,7 +189,7 @@ namespace CheckGenerationPrism
                 );
 
                 Point childCenter = node.Center + offset;
-                node.Children[index] = new OctreeNode(childCenter, quarterSize);
+                node.Children[index] = new OctreeNode(childCenter, quarterSize, nc);
             }
             return InsertBool(node.Children[index], prism, depth + 1);
             // Рекурсивно добавляем точку в нужный дочерний узел
@@ -210,7 +221,7 @@ namespace CheckGenerationPrism
                 );
 
                 Point childCenter = node.Center + offset;
-                node.Children[index] = new OctreeNode(childCenter, quarterSize);
+                node.Children[index] = new OctreeNode(childCenter, quarterSize, nc);
             }
             Insert(node.Children[index], prism, depth + 1);
             // Рекурсивно добавляем точку в нужный дочерний узел
@@ -577,7 +588,7 @@ namespace CheckGenerationPrism
             }
             return nodes.ToList();
         }
-
+        /*
         public List<OctreeNode> GetNeighbourNodes(OctreeNode node)
         {
             if (node.NeighbourNodes != null)
@@ -606,6 +617,7 @@ namespace CheckGenerationPrism
             }
             return node.NeighbourNodes.ToList();
         }
+        */
 
         private OctreeNode FindeNode(OctreeNode node, Point point, int depth)
         {
@@ -630,7 +642,7 @@ namespace CheckGenerationPrism
                 );
 
                 Point childCenter = node.Center + offset;
-                node.Children[index] = new OctreeNode(childCenter, quarterSize);
+                node.Children[index] = new OctreeNode(childCenter, quarterSize, nc);
             }
             return FindeNode(node.Children[index], point, depth + 1);
             // Рекурсивно добавляем точку в нужный дочерний узел

@@ -99,7 +99,7 @@ namespace CheckGenerationPrism
 
             double LimitedSize = Math.Pow(middleVPrism * Num * 100 / (Nc * 100), 1.0 / 3) / 2;
             var maxDistPrism = Point.InvSqrt(Math.Pow(SizeMax / 2, 2) + Math.Pow(SizeMax / 2, 2));
-            var octree = new Octree(new Point(0, 0, 0), LimitedSize, sections);
+            var octree = new Octree(new Point(0, 0, 0), LimitedSize, sections, Nc);
 
             int tryCount = 0;
             ulong i = 0;
@@ -124,6 +124,43 @@ namespace CheckGenerationPrism
             timer.Stop();
             return octree.GetPrisms();
         }
+
+        public static List<PrismModel> GeneratePrisms(ulong Num, double Nc, int SizeMax, int SizeLow, int sections, Octree octree)
+        {
+            var timer = new Timer() { Interval = 5000 };
+
+            double maxVPrism = (((6 * (SizeMax / 2) * (SizeMax / 2)) / 2) * Math.Sin(Math.PI / 3)) * SizeMax;
+
+            int midleSize = (SizeMax - SizeLow) / 2 + SizeLow - 2;
+            double middleVPrism = (((6 * (midleSize / 2) * (midleSize / 2)) / 2) * Math.Sin(Math.PI / 3)) * midleSize;
+
+            double LimitedSize = Math.Pow(middleVPrism * Num * 100 / (Nc * 100), 1.0 / 3) / 2;
+            var maxDistPrism = Point.InvSqrt(Math.Pow(SizeMax / 2, 2) + Math.Pow(SizeMax / 2, 2));
+
+            int tryCount = 0;
+            ulong i = 0;
+            timer.Elapsed += (o, e) =>
+            {
+                Console.WriteLine($"prisms: {i}\t/\t{Num}");
+            };
+            timer.Start();
+            for (i = 0; i < Num && tryCount < 1000;)
+            {
+                var prism = GenerateRandomPrism(LimitedSize, SizeLow, SizeMax);
+                if (octree.InsertBool(prism))
+                {
+                    i++;
+                    tryCount = 0;
+                }
+                else
+                {
+                    tryCount++;
+                }
+            }
+            timer.Stop();
+            return octree.GetPrisms();
+        }
+
         public static void StartGeneration(ulong Num, double Nc, int SizeMax, int SizeLow, int sections)
         {
             Stopwatch sw = Stopwatch.StartNew();
@@ -133,6 +170,7 @@ namespace CheckGenerationPrism
             Console.WriteLine($"End at {sw.Elapsed.TotalSeconds}");           
             //Console.WriteLine("All");
         }
+        
         public class Data
         {
             public ulong Num;
@@ -150,6 +188,7 @@ namespace CheckGenerationPrism
         {
             var th = new Thread(() =>
             {
+                var timer = new Timer() { Interval = 5000 };
                 int tryCount = 0;
                 int i = 0;
                 var program = new Program();
@@ -160,11 +199,15 @@ namespace CheckGenerationPrism
 
                 int Num = (int)(8 * Math.Pow(LimitedSize, 3) * Nc / middleVPrism);
 
-                double limitedSize = Math.Pow(middleVPrism * Num * 100 / (Nc * 100), 1.0 / 3) / 2;
-
                 int sections = GetSectionsForOctree(Num);
 
-                var octree = new Octree(center, LimitedSize, sections);
+                var octree = new Octree(center, LimitedSize, sections,Nc);
+
+                timer.Elapsed += (o, e) =>
+                {
+                    Console.WriteLine($"prisms {i}\t/\t{Num} \t From Thread: {Thread.CurrentThread.ManagedThreadId}");
+                };
+                timer.Start();
 
                 for (i = 0; i < Num && tryCount < 1000;)
                 {
@@ -177,10 +220,11 @@ namespace CheckGenerationPrism
                     else
                     {
                         tryCount++;
+                        Console.WriteLine(tryCount);
                     }
                 }
-
-                list = octree.GetPrisms();
+                timer.Stop();
+                list.AddRange(octree.GetPrisms());
             });
             return th;
         }
@@ -223,8 +267,8 @@ namespace CheckGenerationPrism
             //    Console.WriteLine(new String('-', 100));
             //}
 
-            Stopwatch sw = Stopwatch.StartNew();
             Console.WriteLine("Start");
+            Stopwatch sw = Stopwatch.StartNew();
 
             int Num = 1_00_000;
             double Nc = 0.2;
@@ -238,7 +282,7 @@ namespace CheckGenerationPrism
 
             double LimitedSize = Math.Pow(middleVPrism * Num * 100 / (Nc * 100), 1.0 / 3) / 2;
             var maxDistPrism = Point.InvSqrt(Math.Pow(SizeMax / 2, 2) + Math.Pow(SizeMax / 2, 2));
-            var octree = new Octree(new Point(0, 0, 0), LimitedSize, sections);
+            var octree = new Octree(new Point(0, 0, 0), LimitedSize, sections, Nc);
 
 
             var root = octree.root;
@@ -250,10 +294,28 @@ namespace CheckGenerationPrism
             {
                 var list = new List<PrismModel>();
                 listList.Add(list);
-                threads[i] = GenearetePrismInNode(SizeMax,SizeLow,LimitedSize,Nc, root.Children[i].Center,list);
+                threads[i] = GenearetePrismInNode(SizeMax, SizeLow, root.Children[i].HalfSize, Nc, root.Children[i].Center, list);
+                threads[i].Start();
+                //threads[i].Join();
+            }
+            foreach (var thread in threads)
+            {
+                thread.Join();
             }
 
+            foreach (var list in listList)
+            {
+                foreach (var prism in list)
+                {
+                    if (!octree.InsertBool(prism))
+                    {
+                        throw new Exception("");
+                    }
+                }
+            }
+            Console.WriteLine(octree.GetPrisms().Count);
 
+            var t = GeneratePrisms((ulong)Num, Nc, SizeMax, SizeLow, sections, octree);
 
             sw.Stop();
             Console.WriteLine($"End at {sw.Elapsed.TotalSeconds}");
