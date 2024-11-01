@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-//using System.Threading.Tasks;
+﻿//using System.Threading.Tasks;
 
 namespace CheckGenerationPrism
 {
@@ -80,6 +74,7 @@ namespace CheckGenerationPrism
             if (depth == maxDepth)
             {
                 // Строгая проверка, если призма точно не пересекается с призмами из других нод
+                /*
                 //if ((prism.center.X < (node.Center.X + node.HalfSize - maxDistPrism) &&
                 //    prism.center.X > (node.Center.X - node.HalfSize + maxDistPrism)) &&
 
@@ -114,9 +109,9 @@ namespace CheckGenerationPrism
                 //    CheckIntersectionPrismService.Check(root.Prisms, prism, flag2);
                 //    TryAddMoreNode(node, prism, tlistPrisms);
                 //}
-                //return flag2;
+                //return flag2;*/
 
-                var tlistPrisms = GetNeighbourNodes(prism, node.HalfSize);
+                var tlistPrisms = GetNeighbourNodes(prism);
                 return TryAddMoreNode(node, prism, tlistPrisms);
 
             }
@@ -140,8 +135,6 @@ namespace CheckGenerationPrism
                 node.Children[index] = new OctreeNode(childCenter, quarterSize);
             }
             return InsertBool(node.Children[index], prism, depth + 1);
-            // Рекурсивно добавляем точку в нужный дочерний узел
-            //node.Children[index].Data.Add(point);
         }
 
         private void Insert(OctreeNode node, PrismModel prism, int depth)
@@ -172,10 +165,9 @@ namespace CheckGenerationPrism
                 node.Children[index] = new OctreeNode(childCenter, quarterSize);
             }
             Insert(node.Children[index], prism, depth + 1);
-            // Рекурсивно добавляем точку в нужный дочерний узел
-            //node.Children[index].Data.Add(point);
         }
 
+        // Использовал для добавления призм в одну ноду
         private bool TryAddOneNode(PrismModel pm, OctreeNode node)
         {
             if (node == null)
@@ -376,19 +368,9 @@ namespace CheckGenerationPrism
 
             return flag;*/
         }
-
+        
         private bool IsPrismIntersectionWithOutTask(PrismModel pm, List<PrismModel> prisms)
         {
-            // 1  вариант
-            //foreach (var prism in prisms)
-            //{
-            //    var t = pm.IsPrismIntersection(prism);
-            //    if (t)
-            //        return true;
-            //}
-            //return false;
-
-            // 2 вариант
             foreach (var prism in prisms)
             {
                 var t = PrismModel.IsPrismIntersection(pm, prism);
@@ -402,38 +384,9 @@ namespace CheckGenerationPrism
             }
             PrismModel.Dispose(pm);
             return false;
-
-            // 3 вариант баг
-            //bool flag = false;
-            //Parallel.ForEach(prisms, (prism, state) =>
-            //{
-            //    if(PrismModel.IsPrismIntersection(pm, prism))
-            //    {
-            //        PrismModel.Dispose(prism);
-            //        flag = true;
-            //        state.Stop();
-            //    }
-            //    PrismModel.Dispose(prism);
-            //});
-            //PrismModel.Dispose(pm);
-            //return flag;
-
-            // 4 вариант
-            //PrismModel.UnDispose(pm);
-            //bool intersectionFound = prisms.AsParallel().Any(prism =>
-            //{
-            //    if (PrismModel.IsPrismIntersection(pm, prism))
-            //    {
-            //        PrismModel.Dispose(prism);
-            //        return true;
-            //    }
-            //    PrismModel.Dispose(prism);
-            //    return false;
-            //});
-            //PrismModel.Dispose(pm);
-            //return intersectionFound;
         }
 
+        // Паралельная проверка, работает медленней чем обычный перебор
         private bool TryAddMoreNode2(OctreeNode node, PrismModel prismModel, List<OctreeNode> octreeNodes)
         {
             if (octreeNodes == null || octreeNodes.Count == 0)
@@ -492,7 +445,7 @@ namespace CheckGenerationPrism
             return true;
         }
 
-        private List<OctreeNode> GetNeighbourNodes(PrismModel pm, double halfSize)
+        private List<OctreeNode> GetNeighbourNodes(PrismModel pm)
         {
             var center = pm.center;
             double X = pm.center.X;
@@ -517,22 +470,6 @@ namespace CheckGenerationPrism
             foreach (var point in points)
             {
                 var tnode = FindeNode(root, point, 1);
-                nodes.Add(tnode);
-
-            }
-            return nodes.ToList();
-        }
-
-        private List<OctreeNode> GetNeighbourNodes(PrismModel pm)
-        {
-            var nodes = new HashSet<OctreeNode>
-            {
-                FindeNode(root, pm.center, 1)
-            };
-            foreach (var point in pm.points)
-            {
-                var t = point.ToPoint();//Point.PointPlusD(pm.center, point.ToPoint(), 1);
-                var tnode = FindeNode(root, t, 1);
                 nodes.Add(tnode);
 
             }
@@ -594,8 +531,6 @@ namespace CheckGenerationPrism
                 node.Children[index] = new OctreeNode(childCenter, quarterSize);
             }
             return FindeNode(node.Children[index], point, depth + 1);
-            // Рекурсивно добавляем точку в нужный дочерний узел
-            //node.Children[index].Data.Add(point);
         }
     }
 }
